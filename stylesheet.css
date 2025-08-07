@@ -25,14 +25,35 @@ h1 {
     padding-top: 20px;
 }
 
-#leaderboard {
+#headlineTable, #mainRows {
     background-color: blue;
-    border-radius: 10px;
+    border-radius: 20px;
     border-color: white;
     border: 5px;
     color: white;
     font-family: 'Google Sans Code', sans-serif;
     font-size: 20px;
-    margin: auto;
+    margin: 10px;
     width: 800px;
 }
+
+.metrics {
+    width: auto;
+    border-radius: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#leaderboard {
+    background-color: rgb(255, 255, 255);
+    border-radius: 10px;
+    border-color: white;
+    border: 5px;
+    font-family: 'Google Sans Code', sans-serif;
+    font-size: 20px;
+    margin: auto;
+    width: 800px;
+    padding: 10px;
+}
+
+
