@@ -4,11 +4,20 @@ body {
 
 h1 {
     text-align: center;
-    font-family: 'Jersey 15', sans-serif;
-    font-size: 80px;
+    font-family: 'Google Sans Code', sans-serif;
+    font-size: 40px;
     color: white;
 }
 
 link {
     text-align: center;
+}
+
+#leaderboard {
+    border-color: white;
+    color: white;
+    font-family: 'Google Sans Code', sans-serif;
+    font-size: 20px;
+    margin: auto;
+    width: 800px;
 }
