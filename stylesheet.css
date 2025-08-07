@@ -9,12 +9,27 @@ h1 {
     color: white;
 }
 
-link {
+#link {
+    background-color: brown;
+    color: white;
+    text-decoration: none;
     text-align: center;
+    width:30%;
+    margin: 0 auto 30px auto; 
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    border-radius: 25px;
+    font-family: 'Google Sans Code', sans-serif;
+    padding-bottom: 20px;
+    padding-top: 20px;
 }
 
 #leaderboard {
+    background-color: blue;
+    border-radius: 10px;
     border-color: white;
+    border: 5px;
     color: white;
     font-family: 'Google Sans Code', sans-serif;
     font-size: 20px;
