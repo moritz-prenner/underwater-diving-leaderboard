@@ -43,7 +43,6 @@ h1 {
     margin-left: 10px;
     margin-right: 10px;
     text-align: center;
-    margin-bottom: 20px;
 }
 
 #leaderboard {
@@ -53,13 +52,11 @@ h1 {
     border: 5px;
     font-family: 'Google Sans Code', sans-serif;
     font-size: 20px;
-    margin: auto;
     width: 800px;
     padding: 10px;
+    margin: auto;
 }
 
-#mainRows {
-    margin-bottom: 20px;
+#headRow, .mainRows {
+    margin-bottom: 10px
 }
-
-
