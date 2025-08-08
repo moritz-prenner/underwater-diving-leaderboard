@@ -1,69 +1,50 @@
-import mongoose from 'mongoose';
+import { MongoClient } from 'mongodb';
 
-// MongoDB-Verbindung zwischenspeichern (Vercel optimiert so)
-let cached = global.mongoose;
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+let cachedClient = null;
+let cachedDb = null;
+
+const uri = process.env.MONGODB_URI;
+const dbName = 'deineDatenbankName'; // Passe das an
+
+if (!uri) {
+  throw new Error('MONGODB_URI ist nicht definiert. Bitte in Vercel Settings als Environment Variable setzen.');
 }
 
-async function connectToDatabase() {
-  if (cached.conn) return cached.conn;
-
-  if (!cached.promise) {
-    const uri = process.env.MONGODB_URI;
-    cached.promise = mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+export async function connectToDatabase() {
+  if (cachedClient && cachedDb) {
+    return { client: cachedClient, db: cachedDb };
   }
 
-  cached.conn = await cached.promise;
-  return cached.conn;
+  const client = new MongoClient(uri);
+
+  await client.connect();
+  const db = client.db(dbName);
+
+  cachedClient = client;
+  cachedDb = db;
+
+  return { client, db };
 }
 
-// Schema und Modell
-const ScoreSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  time: { type: String, required: true }, // z. B. "01:23.456"
-  submittedAt: { type: Date, default: Date.now }
-});
-
-const Score = mongoose.models.Score || mongoose.model('Score', ScoreSchema);
-
-// API-Handler
 export default async function handler(req, res) {
-  console.log('HTTP Methode:', req.method);
-  console.log('Headers:', req.headers);
-  console.log('Body:', req.body);
-  await connectToDatabase();
-
-  if (req.method === 'POST') {
-    const { username, time } = req.body;
-
-    if (!username || !time) {
-      return res.status(400).json({ message: 'Fehlende Daten: username oder time' });
-    }
-
-    try {
-      const newScore = await Score.create({ username, time });
-      return res.status(201).json({ message: 'Score gespeichert', data: newScore });
-    } catch (error) {
-      console.error('Fehler beim Speichern:', error);
-      return res.status(500).json({ message: 'Serverfehler beim Speichern' });
-    }
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Nur GET erlaubt' });
+    return;
   }
 
-  if (req.method === 'GET') {
-    try {
-      const scores = await Score.find().sort({ submittedAt: -1 }).lean();
-      return res.status(200).json(scores);
-    } catch (error) {
-      console.error('Fehler beim Abrufen:', error);
-      return res.status(500).json({ message: 'Serverfehler beim Abrufen' });
-    }
-  }
+  try {
+    const { db } = await connectToDatabase();
 
-  // Wenn weder POST noch GET
-  res.setHeader('Allow', ['GET', 'POST']);
-  res.status(405).end(`Methode ${req.method} nicht erlaubt`);
+    // Beispiel: Alle Einträge aus Collection "leaderboard" holen, sortiert nach "score" absteigend
+    const leaderboard = await db
+      .collection('leaderboard')
+      .find({})
+      .sort({ score: -1 })
+      .toArray();
+
+    res.status(200).json({ leaderboard });
+  } catch (error) {
+    console.error('Fehler beim Abrufen der Daten:', error);
+    res.status(500).json({ error: 'Interner Serverfehler' });
+  }
 }
