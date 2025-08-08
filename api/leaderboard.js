@@ -4,10 +4,21 @@ let cachedClient = null;
 let cachedDb = null;
 
 const uri = process.env.MONGODB_URI;
-const dbName = 'deineDatenbankName'; // Passe den Namen deiner Datenbank an
+const dbName = 'deineDatenbankName'; // Passe den Namen deiner DB an
 
 if (!uri) {
   throw new Error('MONGODB_URI ist nicht definiert. Bitte in Vercel Settings als Environment Variable setzen.');
+}
+
+function parseTimeToMs(timeStr) {
+  const parts = timeStr.split(':');
+  if (parts.length === 2) {
+    const min = Number(parts[0]);
+    const sec = Number(parts[1]);
+    return Math.round(min * 60000 + sec * 1000);
+  } else {
+    return Math.round(Number(timeStr) * 1000);
+  }
 }
 
 export async function connectToDatabase() {
@@ -34,7 +45,7 @@ export default async function handler(req, res) {
       const leaderboard = await db
         .collection('leaderboard')
         .find({})
-        .sort({ time: 1 }) // Sortiere nach Zeit aufsteigend (schnellste zuerst)
+        .sort({ time: 1 }) // aufsteigend nach Zeit
         .toArray();
 
       console.log('GET Leaderboard:', leaderboard);
@@ -54,7 +65,7 @@ export default async function handler(req, res) {
         return;
       }
 
-      const score = Number(time);
+      const score = parseTimeToMs(time);
 
       const { db } = await connectToDatabase();
       await db.collection('leaderboard').insertOne({
