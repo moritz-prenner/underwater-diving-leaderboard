@@ -27,7 +27,6 @@ export async function connectToDatabase() {
 }
 
 export default async function handler(req, res) {
-  
   console.log('Methode:', req.method);
 
   if (req.method === 'GET') {
@@ -36,7 +35,7 @@ export default async function handler(req, res) {
       const leaderboard = await db
         .collection('leaderboard')
         .find({})
-        .sort({ score: -1 }) // Oder sortiere nach "time" je nach Schema
+        .sort({ score: -1 })
         .toArray();
 
       res.status(200).json({ leaderboard });
@@ -45,6 +44,10 @@ export default async function handler(req, res) {
       res.status(500).json({ error: 'Interner Serverfehler' });
     }
   } 
+  else if (req.method === 'HEAD') {
+    // HEAD wird wie GET behandelt, nur ohne Body
+    res.status(200).end();
+  }
   else if (req.method === 'POST') {
     try {
       const { db } = await connectToDatabase();
@@ -56,8 +59,7 @@ export default async function handler(req, res) {
         return;
       }
 
-      // Beispiel: Speichere Score als Zahl, passe an dein Schema an
-      const score = Number(time); 
+      const score = Number(time);
 
       await db.collection('leaderboard').insertOne({
         username,
@@ -72,7 +74,7 @@ export default async function handler(req, res) {
     }
   } 
   else {
-    res.status(405).json({ error: 'Nur GET und POST erlaubt' });
+    res.setHeader('Allow', ['GET', 'HEAD', 'POST']);
+    res.status(405).json({ error: `Methode ${req.method} nicht erlaubt` });
   }
 }
-
