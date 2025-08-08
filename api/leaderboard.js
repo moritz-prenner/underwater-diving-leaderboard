@@ -27,24 +27,49 @@ export async function connectToDatabase() {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    res.status(405).json({ error: 'Nur GET erlaubt' });
-    return;
-  }
+  if (req.method === 'GET') {
+    try {
+      const { db } = await connectToDatabase();
+      const leaderboard = await db
+        .collection('leaderboard')
+        .find({})
+        .sort({ score: -1 }) // Oder sortiere nach "time" je nach Schema
+        .toArray();
 
-  try {
-    const { db } = await connectToDatabase();
+      res.status(200).json({ leaderboard });
+    } catch (error) {
+      console.error('Fehler beim Abrufen der Daten:', error);
+      res.status(500).json({ error: 'Interner Serverfehler' });
+    }
+  } 
+  else if (req.method === 'POST') {
+    try {
+      const { db } = await connectToDatabase();
 
-    // Beispiel: Alle Einträge aus Collection "leaderboard" holen, sortiert nach "score" absteigend
-    const leaderboard = await db
-      .collection('leaderboard')
-      .find({})
-      .sort({ score: -1 })
-      .toArray();
+      const { username, time } = req.body;
 
-    res.status(200).json({ leaderboard });
-  } catch (error) {
-    console.error('Fehler beim Abrufen der Daten:', error);
-    res.status(500).json({ error: 'Interner Serverfehler' });
+      if (!username || !time) {
+        res.status(400).json({ error: 'username und time werden benötigt' });
+        return;
+      }
+
+      // Beispiel: Speichere Score als Zahl, passe an dein Schema an
+      const score = Number(time); 
+
+      await db.collection('leaderboard').insertOne({
+        username,
+        time: score,
+        createdAt: new Date()
+      });
+
+      res.status(201).json({ message: 'Score gespeichert' });
+    } catch (error) {
+      console.error('Fehler beim Speichern des Scores:', error);
+      res.status(500).json({ error: 'Interner Serverfehler' });
+    }
+  } 
+  else {
+    res.status(405).json({ error: 'Nur GET und POST erlaubt' });
   }
 }
+
