@@ -32,6 +32,9 @@ const Score = mongoose.models.Score || mongoose.model('Score', ScoreSchema);
 
 // API-Handler
 export default async function handler(req, res) {
+  console.log('HTTP Methode:', req.method);
+  console.log('Headers:', req.headers);
+  console.log('Body:', req.body);
   await connectToDatabase();
 
   if (req.method === 'POST') {
