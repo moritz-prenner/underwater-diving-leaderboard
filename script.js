@@ -29,9 +29,9 @@ function renderLeaderboard(entries) {
   entries.forEach((entry, index) => {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${entry.username}</td>
-      <td>${formatTime(entry.time)}</td>
+      <td class="metrics" >${index + 1}</td>
+      <td class="metrics" >${entry.username}</td>
+      <td class="metrics" >${formatTime(entry.time)}</td>
     `;
     leaderboardBody.appendChild(row);
   });
