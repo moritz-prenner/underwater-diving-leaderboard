@@ -1,39 +1,66 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import mongoose from 'mongoose';
 
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
-
-let cachedDb = null;
-
-async function connectToDatabase() {
-  if (cachedDb) return cachedDb;
-  await client.connect();
-  cachedDb = client.db('leaderboardDB');
-  return cachedDb;
+// MongoDB-Verbindung zwischenspeichern (Vercel optimiert so)
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
+async function connectToDatabase() {
+  if (cached.conn) return cached.conn;
+
+  if (!cached.promise) {
+    const uri = process.env.MONGODB_URI;
+    cached.promise = mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+
+// Schema und Modell
+const ScoreSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  time: { type: String, required: true }, // z. B. "01:23.456"
+  submittedAt: { type: Date, default: Date.now }
+});
+
+const Score = mongoose.models.Score || mongoose.model('Score', ScoreSchema);
+
+// API-Handler
 export default async function handler(req, res) {
-  const db = await connectToDatabase();
-  const scores = db.collection('scores');
+  await connectToDatabase();
+
+  if (req.method === 'POST') {
+    const { username, time } = req.body;
+
+    if (!username || !time) {
+      return res.status(400).json({ message: 'Fehlende Daten: username oder time' });
+    }
+
+    try {
+      const newScore = await Score.create({ username, time });
+      return res.status(201).json({ message: 'Score gespeichert', data: newScore });
+    } catch (error) {
+      console.error('Fehler beim Speichern:', error);
+      return res.status(500).json({ message: 'Serverfehler beim Speichern' });
+    }
+  }
 
   if (req.method === 'GET') {
-    const leaderboard = await scores.find().sort({ time: 1 }).limit(10).toArray();
-    res.status(200).json(leaderboard);
-  } else if (req.method === 'POST') {
-    const { username, time } = req.body;
-    if (!username || time === undefined) {
-      return res.status(400).json({ error: 'Username und Zeit erforderlich' });
+    try {
+      const scores = await Score.find().sort({ submittedAt: -1 }).lean();
+      return res.status(200).json(scores);
+    } catch (error) {
+      console.error('Fehler beim Abrufen:', error);
+      return res.status(500).json({ message: 'Serverfehler beim Abrufen' });
     }
-    await scores.insertOne({ username, time: Number(time) });
-    res.status(201).json({ message: 'Score gespeichert' });
-  } else {
-    res.setHeader('Allow', ['GET', 'POST']);
-    res.status(405).end(`Methode ${req.method} nicht erlaubt`);
   }
+
+  // Wenn weder POST noch GET
+  res.setHeader('Allow', ['GET', 'POST']);
+  res.status(405).end(`Methode ${req.method} nicht erlaubt`);
 }

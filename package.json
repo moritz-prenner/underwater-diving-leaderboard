@@ -1,9 +1,8 @@
 {
-  "name": "underwater-leaderboard",
+  "name": "leaderboard-api",
   "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
+  "type": "module",
   "dependencies": {
-    "mongodb": "^5.7.0"
+    "mongoose": "^8.0.0"
   }
 }
