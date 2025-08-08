@@ -26,7 +26,8 @@ export async function connectToDatabase() {
 }
 
 export default async function handler(req, res) {
-  console.log('Methode:', req.method);
+  console.log('Method:', req.method);
+  console.log('Headers:', req.headers);
 
   if (req.method === 'GET') {
     try {
