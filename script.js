@@ -38,12 +38,7 @@ function renderLeaderboard(entries) {
 }
 
 function formatTime(seconds) {
-  if (!seconds || seconds <= 0) return '00:00.00';
-
-  const min = Math.floor(seconds / 60);
-  const sec = (seconds % 60).toFixed(2);
-
-  return `${min.toString().padStart(2, '0')}:${sec.padStart(5, '0')}`;
+    return seconds
 }
 
 document.addEventListener('DOMContentLoaded', fetchLeaderboard);
