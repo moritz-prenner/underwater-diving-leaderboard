@@ -4,7 +4,7 @@ let cachedClient = null;
 let cachedDb = null;
 
 const uri = process.env.MONGODB_URI;
-const dbName = 'deineDatenbankName'; // Passe den Namen deiner DB an
+const dbName = 'underwater_diving_stats'; // Passe den Namen deiner DB an
 
 if (!uri) {
   throw new Error('MONGODB_URI ist nicht definiert. Bitte in Vercel Settings als Environment Variable setzen.');
