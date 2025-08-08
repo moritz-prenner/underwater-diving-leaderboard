@@ -45,7 +45,38 @@ export default async function handler(req, res) {
   } 
   
   else if (req.method === 'HEAD') {
-    res.status(200).end();
+    console.log("Headers:", req.headers);
+
+    let rawBody = "";
+    req.on("data", chunk => rawBody += chunk);
+
+    req.on("end", async () => {
+      console.log("Raw Body:", rawBody);
+
+      try {
+        const data = JSON.parse(rawBody);
+        const { username, time } = data;
+
+        if (!username || !time) {
+          res.status(400).json({ error: 'username und time werden benötigt' });
+          return;
+        }
+
+        const score = Number(time); // optional: je nach Auswertung
+
+        const { db } = await connectToDatabase();
+        await db.collection('leaderboard').insertOne({
+          username,
+          time: score,
+          createdAt: new Date()
+        });
+
+        res.status(201).json({ message: 'Score gespeichert' });
+      } catch (err) {
+        console.error('Fehler beim Parsen oder Speichern:', err);
+        res.status(500).json({ error: 'Fehler beim Parsen oder Speichern' });
+      }
+    });
   }
   
   else if (req.method === 'POST') {
