@@ -13,9 +13,8 @@ async function fetchLeaderboard() {
 
         const data = await response.json();
 
-        // Sortieren: schnellste Zeit = oben
-        const sorted = data.sort((a, b) => {
-            // Zeit-Strings wie "01:23.456" müssen in Millisekunden umgerechnet werden
+        // Korrigiere hier: nutze data.leaderboard statt data
+        const sorted = data.leaderboard.sort((a, b) => {
             return parseTimeToMs(a.time) - parseTimeToMs(b.time);
         });
 
@@ -25,6 +24,7 @@ async function fetchLeaderboard() {
         console.error('Fehler:', error);
     }
 }
+
 
 function parseTimeToMs(timeStr) {
     // Format: "mm:ss.mmm" oder "m:ss.mmm"
